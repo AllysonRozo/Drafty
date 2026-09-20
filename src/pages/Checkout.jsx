@@ -8,6 +8,8 @@ function Checkout() {
   const { carrito } = useCart()
   const navigate = useNavigate()
 
+  const usuario = JSON.parse(localStorage.getItem('usuario'))
+
   const [formulario, setFormulario] = useState({
     nombre: '',
     apellido: '',
@@ -66,6 +68,7 @@ function Checkout() {
       // 3. Crear pedido
       await crearOrder({
         cliente: respuestaCliente.data.id,
+        usuario: usuario.id,
         fecha: new Date().toISOString(),
         metodo_pago: formulario.metodo_pago,
         total: total,

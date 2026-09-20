@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { obtenerProductos } from '../services/productoService'
+import { obtenerProductos, actualizarProducto, eliminarProducto } from '../services/productoService'
 import { useCart } from '../context/CartContext'
 
 import cuadernoAesthetic from '../img/cuaderno-aesthetic.jpg'
@@ -22,6 +22,7 @@ function Tienda() {
 
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [actualizando, setActualizando] = useState(null)
   const [searchParams] = useSearchParams()
 
   const categoria = searchParams.get('categoria')
@@ -54,6 +55,43 @@ function Tienda() {
         setCargando(false)
       })
   }, [])
+
+  const actualizarStock = (producto) => {
+  const nuevoStock = prompt(
+    `Nuevo stock para ${producto.nombre}:`,
+    producto.stock
+  )
+
+  if (nuevoStock === null) return
+
+  if (nuevoStock === '' || Number(nuevoStock) < 0) {
+    alert('Ingresa un stock válido.')
+    return
+  }
+
+  setActualizando(producto.id)
+
+  actualizarProducto(producto.id, {
+    ...producto,
+    stock: Number(nuevoStock)
+  })
+    .then((respuesta) => {
+      setProductos((productosActuales) =>
+        productosActuales.map((item) =>
+          item.id === producto.id ? respuesta.data : item
+        )
+      )
+
+      alert('Stock actualizado correctamente.')
+    })
+    .catch((error) => {
+      console.error('Error al actualizar el stock:', error)
+      alert('No se pudo actualizar el stock.')
+    })
+    .finally(() => {
+      setActualizando(null)
+    })
+}
 
   const productosFiltrados = productos.filter((producto) => {
     if (!categoria) {
@@ -101,6 +139,17 @@ function Tienda() {
               <span>
                 Stock: {producto.stock}
               </span>
+
+
+            <button
+             className="update-stock-button"
+            onClick={() => actualizarStock(producto)}
+            disabled={actualizando === producto.id}
+            >
+            {actualizando === producto.id
+               ? 'Actualizando...'
+               : 'Actualizar stock'}
+              </button>
 
               <button
                 className="add-cart-button"
